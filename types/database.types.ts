@@ -524,7 +524,14 @@ export type Database = {
       };
     };
     Views: {
-      [_ in never]: never;
+      state_county_lookup: {
+        Row: {
+          county_name: string | null;
+          fips_county_code: number | null;
+          state_code: string | null;
+        };
+        Relationships: [];
+      };
     };
     Functions: {
       [_ in never]: never;
