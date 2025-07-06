@@ -78,39 +78,48 @@ export default function GeoFilters({
 
   return (
     <div className={className}>
-      <Form className="space-y-4" onSubmit={handleSubmit}>
-        <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
-          <div>
+      <Form
+        className="flex flex-col items-center space-y-6"
+        onSubmit={handleSubmit}
+      >
+        <div className="w-full max-w-md space-y-4">
+          <div className="flex flex-col items-center space-y-2">
             <label
-              className="mb-2 block text-sm font-medium text-gray-700"
+              className="text-sm font-medium text-gray-700"
               htmlFor="state-filter"
             >
               State
             </label>
-            <StateFilters
-              placeholder="Select a state"
-              selectedState={filters.state}
-              onStateChange={handleStateChange}
-            />
+            <div className="flex w-full justify-center">
+              <StateFilters
+                className="w-full"
+                placeholder="Select a state"
+                selectedState={filters.state}
+                onStateChange={handleStateChange}
+              />
+            </div>
           </div>
 
-          <div>
+          <div className="flex flex-col items-center space-y-2">
             <label
-              className="mb-2 block text-sm font-medium text-gray-700"
+              className="text-sm font-medium text-gray-700"
               htmlFor="county-filter"
             >
               County
             </label>
-            <CountyFilters
-              placeholder="Select a county"
-              selectedCounty={filters.county}
-              selectedState={filters.state}
-              onCountyChange={handleCountyChange}
-            />
+            <div className="flex w-full justify-center">
+              <CountyFilters
+                className="w-full"
+                placeholder="Select a county"
+                selectedCounty={filters.county}
+                selectedState={filters.state}
+                onCountyChange={handleCountyChange}
+              />
+            </div>
           </div>
         </div>
 
-        <div className="flex gap-2">
+        <div className="flex justify-center gap-2">
           <Button color="primary" isDisabled={!filters.state} type="submit">
             Apply Filters
           </Button>
