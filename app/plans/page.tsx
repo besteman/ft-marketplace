@@ -6,7 +6,7 @@ import type {
   PlanDetails,
 } from "@/types";
 
-import React, { useState, useMemo, useEffect } from "react";
+import React, { useState, useMemo, useEffect, Suspense } from "react";
 import { useSearchParams } from "next/navigation";
 import Link from "next/link";
 import {
@@ -24,12 +24,20 @@ import {
   DropdownTrigger,
 } from "@heroui/dropdown";
 import { Button } from "@heroui/button";
+import { Card, CardBody, CardHeader } from "@heroui/card";
+import { Chip } from "@heroui/chip";
+import { Progress } from "@heroui/progress";
+import { Tooltip } from "@heroui/tooltip";
+import { Divider } from "@heroui/divider";
+import { useDisclosure } from "@heroui/modal";
 
 import CombinedFilters from "@/components/combinedFilters";
 import FiltersSummary from "@/components/filtersSummary";
+import HelpModal from "@/components/helpModal";
 
-export default function PlansPage() {
+function PlansPageContent() {
   const searchParams = useSearchParams();
+  const { isOpen, onOpen, onOpenChange } = useDisclosure();
 
   const [planDetails, setPlanDetails] = useState<PlanDetails[]>([]);
   const [loading, setLoading] = useState(false);
@@ -204,7 +212,7 @@ export default function PlansPage() {
     { key: "plan_marketing_name", label: "Plan Name" },
     { key: "plan_type", label: "Plan Type" },
     { key: "average_premium", label: "Avg Premium" },
-    { key: "out_of_pocket", label: "Out-of-Pocket Premium" },
+    { key: "out_of_pocket", label: "Out-of-Pocket" },
     { key: "net_cost", label: "Remaining Budget" },
     { key: "details", label: "Details" },
   ];
@@ -218,6 +226,40 @@ export default function PlansPage() {
       minimumFractionDigits: 0,
       maximumFractionDigits: 2,
     }).format(value);
+  };
+
+  const getMetalLevelColor = (
+    metalLevel: string,
+  ): "primary" | "secondary" | "success" | "warning" | "danger" => {
+    switch (metalLevel?.toLowerCase()) {
+      case "bronze":
+        return "warning";
+      case "silver":
+        return "secondary";
+      case "gold":
+        return "success";
+      case "platinum":
+        return "primary";
+      case "catastrophic":
+        return "danger";
+      default:
+        return "secondary";
+    }
+  };
+
+  const getPlanTypeIcon = (planType: string): string => {
+    switch (planType?.toUpperCase()) {
+      case "HMO":
+        return "🏥";
+      case "PPO":
+        return "🏩";
+      case "EPO":
+        return "🏪";
+      case "POS":
+        return "🎯";
+      default:
+        return "📋";
+    }
   };
 
   const calculateNetCost = (
@@ -263,225 +305,473 @@ export default function PlansPage() {
   };
 
   return (
-    <section className="flex flex-col items-center justify-center gap-4 py-8 md:py-10">
-      <div className="mt-8 w-full max-w-2xl rounded-lg border border-gray-200 bg-white p-6 shadow-md">
-        {!filtersApplied ? (
-          <CombinedFilters onSubmit={handleFiltersSubmit} />
-        ) : (
-          submittedData && (
-            <FiltersSummary data={submittedData} onReset={handleResetFilters} />
-          )
-        )}
-      </div>
-
-      {error && (
-        <div className="w-full max-w-2xl rounded-lg border border-red-200 bg-red-50 p-4 text-red-700">
-          Error: {error}
-        </div>
-      )}
-
-      {loading && (
-        <div className="w-full max-w-2xl rounded-lg border border-blue-200 bg-blue-50 p-4 text-blue-700">
-          Loading plan details...
-        </div>
-      )}
-
-      {planDetails.length > 0 && !loading && (
-        <div className="w-full max-w-6xl rounded-lg border border-gray-200 bg-white p-6 shadow-md">
-          <h2 className="mb-4 text-xl font-semibold text-gray-800">
-            Available Plans ({filteredPlanDetails.length} of{" "}
-            {planDetails.length})
-          </h2>
-
-          {/* Filter Controls */}
-          <div className="mb-6 flex flex-wrap gap-4">
-            {/* Metal Level Filter */}
-            <div className="flex flex-col gap-1">
-              <span className="text-sm font-medium text-gray-600">
-                Metal Level
-              </span>
-              <Dropdown>
-                <DropdownTrigger>
-                  <Button
-                    className="min-w-[140px] justify-start"
-                    variant="bordered"
-                  >
-                    {metalLevelFilter === "all"
-                      ? "All Levels"
-                      : metalLevelFilter}
-                  </Button>
-                </DropdownTrigger>
-                <DropdownMenu
-                  aria-label="Metal Level Filter"
-                  items={[
-                    { key: "all", label: "All Levels" },
-                    ...uniqueMetalLevels.map((level) => ({
-                      key: level,
-                      label: level,
-                    })),
-                  ]}
-                  onAction={(key) => setMetalLevelFilter(key as string)}
-                >
-                  {(item) => (
-                    <DropdownItem key={item.key}>{item.label}</DropdownItem>
-                  )}
-                </DropdownMenu>
-              </Dropdown>
+    <section className="flex flex-col items-center justify-center gap-6 py-8 md:py-10">
+      {/* Filter Section */}
+      <Card className="w-full max-w-4xl">
+        <CardHeader className="pb-2">
+          <div className="flex items-center justify-between">
+            <div>
+              <h1 className="text-2xl font-bold text-gray-800">
+                Find Your Health Plan
+              </h1>
+              <p className="text-gray-600">
+                {!filtersApplied
+                  ? "Start by telling us about your location and situation"
+                  : "Review your plan options and compare details"}
+              </p>
             </div>
-
-            {/* Issuer Filter */}
-            <div className="flex flex-col gap-1">
-              <span className="text-sm font-medium text-gray-600">Issuer</span>
-              <Dropdown>
-                <DropdownTrigger>
-                  <Button
-                    className="min-w-[180px] justify-start truncate"
-                    variant="bordered"
-                  >
-                    {issuerFilter === "all" ? "All Issuers" : issuerFilter}
-                  </Button>
-                </DropdownTrigger>
-                <DropdownMenu
-                  aria-label="Issuer Filter"
-                  items={[
-                    { key: "all", label: "All Issuers" },
-                    ...uniqueIssuers.map((issuer) => ({
-                      key: issuer,
-                      label: issuer,
-                    })),
-                  ]}
-                  onAction={(key) => setIssuerFilter(key as string)}
-                >
-                  {(item) => (
-                    <DropdownItem key={item.key}>{item.label}</DropdownItem>
-                  )}
-                </DropdownMenu>
-              </Dropdown>
-            </div>
-
-            {/* Plan Type Filter */}
-            <div className="flex flex-col gap-1">
-              <span className="text-sm font-medium text-gray-600">
-                Plan Type
-              </span>
-              <Dropdown>
-                <DropdownTrigger>
-                  <Button
-                    className="min-w-[140px] justify-start"
-                    variant="bordered"
-                  >
-                    {planTypeFilter === "all" ? "All Types" : planTypeFilter}
-                  </Button>
-                </DropdownTrigger>
-                <DropdownMenu
-                  aria-label="Plan Type Filter"
-                  items={[
-                    { key: "all", label: "All Types" },
-                    ...uniquePlanTypes.map((type) => ({
-                      key: type,
-                      label: type,
-                    })),
-                  ]}
-                  onAction={(key) => setPlanTypeFilter(key as string)}
-                >
-                  {(item) => (
-                    <DropdownItem key={item.key}>{item.label}</DropdownItem>
-                  )}
-                </DropdownMenu>
-              </Dropdown>
-            </div>
-
-            {/* Clear Filters Button */}
-            <div className="flex flex-col gap-1">
-              <span className="text-sm font-medium text-transparent">
-                Actions
-              </span>
+            <Tooltip content="Need help getting started?">
               <Button
                 color="secondary"
+                size="sm"
                 variant="flat"
-                onPress={() => {
-                  setMetalLevelFilter("all");
-                  setIssuerFilter("all");
-                  setPlanTypeFilter("all");
+                onPress={onOpen}
+              >
+                ❓ Help
+              </Button>
+            </Tooltip>
+          </div>
+        </CardHeader>
+        <CardBody>
+          {!filtersApplied ? (
+            <CombinedFilters onSubmit={handleFiltersSubmit} />
+          ) : (
+            submittedData && (
+              <FiltersSummary
+                data={submittedData}
+                onReset={handleResetFilters}
+              />
+            )
+          )}
+        </CardBody>
+      </Card>
+
+      {/* Error State */}
+      {error && (
+        <Card className="w-full max-w-4xl border-red-200 bg-red-50">
+          <CardBody>
+            <div className="flex items-center gap-2 text-red-700">
+              <span className="text-lg">⚠️</span>
+              <span>Error: {error}</span>
+            </div>
+          </CardBody>
+        </Card>
+      )}
+
+      {/* Loading State */}
+      {loading && (
+        <Card className="w-full max-w-4xl">
+          <CardBody>
+            <div className="flex flex-col items-center gap-4">
+              <Progress
+                isIndeterminate
+                aria-label="Loading plan details"
+                className="max-w-md"
+                size="md"
+              />
+              <p className="text-blue-700">
+                Loading plan details for {submittedData?.geo.county},{" "}
+                {submittedData?.geo.state}...
+              </p>
+            </div>
+          </CardBody>
+        </Card>
+      )}
+
+      {/* Plans Results */}
+      {planDetails.length > 0 && !loading && (
+        <div className="w-full max-w-7xl space-y-6">
+          {/* Results Summary */}
+          <Card>
+            <CardBody>
+              <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+                <div>
+                  <h2 className="text-xl font-semibold text-gray-800">
+                    Available Plans
+                  </h2>
+                  <p className="text-gray-600">
+                    Showing {filteredPlanDetails.length} of {planDetails.length}{" "}
+                    plans for {submittedData?.geo.county},{" "}
+                    {submittedData?.geo.state}
+                  </p>
+                </div>
+                <div className="flex flex-wrap gap-2">
+                  <Tooltip content="Plans that meet your location criteria">
+                    <Chip color="primary" variant="flat">
+                      📍 {planDetails.length} Total Plans
+                    </Chip>
+                  </Tooltip>
+                  {filteredPlanDetails.length !== planDetails.length && (
+                    <Tooltip content="Plans visible after applying filters">
+                      <Chip color="secondary" variant="flat">
+                        🔍 {filteredPlanDetails.length} Filtered
+                      </Chip>
+                    </Tooltip>
+                  )}
+                </div>
+              </div>
+            </CardBody>
+          </Card>
+
+          {/* Filter Controls */}
+          <Card>
+            <CardHeader>
+              <h3 className="text-lg font-medium text-gray-800">
+                Filter & Sort Plans
+              </h3>
+            </CardHeader>
+            <Divider />
+            <CardBody>
+              <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
+                {/* Metal Level Filter */}
+                <div className="flex flex-col gap-2">
+                  <Tooltip content="Filter by plan metal level (coverage tier)">
+                    <span className="text-sm font-medium text-gray-600">
+                      🏅 Metal Level
+                    </span>
+                  </Tooltip>
+                  <Dropdown>
+                    <DropdownTrigger>
+                      <Button className="justify-start" variant="bordered">
+                        {metalLevelFilter === "all"
+                          ? "All Levels"
+                          : metalLevelFilter}
+                      </Button>
+                    </DropdownTrigger>
+                    <DropdownMenu
+                      aria-label="Metal Level Filter"
+                      items={[
+                        { key: "all", label: "All Levels" },
+                        ...uniqueMetalLevels.map((level) => ({
+                          key: level,
+                          label: level,
+                        })),
+                      ]}
+                      onAction={(key) => setMetalLevelFilter(key as string)}
+                    >
+                      {(item) => (
+                        <DropdownItem key={item.key}>{item.label}</DropdownItem>
+                      )}
+                    </DropdownMenu>
+                  </Dropdown>
+                </div>
+
+                {/* Issuer Filter */}
+                <div className="flex flex-col gap-2">
+                  <Tooltip content="Filter by insurance company">
+                    <span className="text-sm font-medium text-gray-600">
+                      🏢 Insurance Company
+                    </span>
+                  </Tooltip>
+                  <Dropdown>
+                    <DropdownTrigger>
+                      <Button
+                        className="justify-start truncate"
+                        variant="bordered"
+                      >
+                        {issuerFilter === "all"
+                          ? "All Companies"
+                          : issuerFilter}
+                      </Button>
+                    </DropdownTrigger>
+                    <DropdownMenu
+                      aria-label="Issuer Filter"
+                      items={[
+                        { key: "all", label: "All Companies" },
+                        ...uniqueIssuers.map((issuer) => ({
+                          key: issuer,
+                          label: issuer,
+                        })),
+                      ]}
+                      onAction={(key) => setIssuerFilter(key as string)}
+                    >
+                      {(item) => (
+                        <DropdownItem key={item.key}>{item.label}</DropdownItem>
+                      )}
+                    </DropdownMenu>
+                  </Dropdown>
+                </div>
+
+                {/* Plan Type Filter */}
+                <div className="flex flex-col gap-2">
+                  <Tooltip content="Filter by plan type (HMO, PPO, etc.)">
+                    <span className="text-sm font-medium text-gray-600">
+                      📋 Plan Type
+                    </span>
+                  </Tooltip>
+                  <Dropdown>
+                    <DropdownTrigger>
+                      <Button className="justify-start" variant="bordered">
+                        {planTypeFilter === "all"
+                          ? "All Types"
+                          : planTypeFilter}
+                      </Button>
+                    </DropdownTrigger>
+                    <DropdownMenu
+                      aria-label="Plan Type Filter"
+                      items={[
+                        { key: "all", label: "All Types" },
+                        ...uniquePlanTypes.map((type) => ({
+                          key: type,
+                          label: type,
+                        })),
+                      ]}
+                      onAction={(key) => setPlanTypeFilter(key as string)}
+                    >
+                      {(item) => (
+                        <DropdownItem key={item.key}>{item.label}</DropdownItem>
+                      )}
+                    </DropdownMenu>
+                  </Dropdown>
+                </div>
+
+                {/* Clear Filters Button */}
+                <div className="flex flex-col gap-2">
+                  <span className="text-sm font-medium text-transparent">
+                    Actions
+                  </span>
+                  <Button
+                    color="secondary"
+                    variant="flat"
+                    onPress={() => {
+                      setMetalLevelFilter("all");
+                      setIssuerFilter("all");
+                      setPlanTypeFilter("all");
+                    }}
+                  >
+                    🔄 Clear Filters
+                  </Button>
+                </div>
+              </div>
+            </CardBody>
+          </Card>
+
+          {/* Plans Table */}
+          <Card>
+            <Divider />
+            <CardBody className="overflow-x-auto p-0">
+              <Table
+                aria-label="Plan details table"
+                classNames={{
+                  wrapper: "min-h-[200px]",
                 }}
               >
-                Clear Filters
-              </Button>
-            </div>
-          </div>
-
-          <Table aria-label="Plan details table">
-            <TableHeader columns={columns}>
-              {(column) => (
-                <TableColumn key={column.key}>{column.label}</TableColumn>
-              )}
-            </TableHeader>
-            <TableBody items={filteredPlanDetails}>
-              {(item) => (
-                <TableRow key={item.id}>
-                  {(columnKey) => (
-                    <TableCell>
-                      {(() => {
-                        if (columnKey === "average_premium") {
-                          return formatCurrency(item.average_premium);
-                        }
-                        if (columnKey === "net_cost") {
-                          return formatCurrency(
-                            calculateNetCost(item.average_premium),
-                          );
-                        }
-                        if (columnKey === "out_of_pocket") {
-                          return formatCurrency(
-                            calculateOutOfPocketPremium(item.average_premium),
-                          );
-                        }
-                        if (columnKey === "details") {
-                          const params = new URLSearchParams();
-
-                          if (submittedData?.demo.familyMakeup) {
-                            params.append(
-                              "family_makeup",
-                              submittedData.demo.familyMakeup,
-                            );
-                          }
-                          if (submittedData?.demo.averageMonthlySalary) {
-                            params.append(
-                              "average_monthly_salary",
-                              submittedData.demo.averageMonthlySalary,
-                            );
-                          }
-                          if (submittedData?.demo.ichraAmount) {
-                            params.append(
-                              "ichra_amount",
-                              submittedData.demo.ichraAmount,
-                            );
-                          }
-
-                          const queryString = params.toString();
-                          const href = queryString
-                            ? `/plans/${item.id}?${queryString}`
-                            : `/plans/${item.id}`;
-
-                          return (
-                            <Link
-                              className="text-blue-600 hover:text-blue-800 underline"
-                              href={href}
-                            >
-                              Details
-                            </Link>
-                          );
-                        }
-
-                        return item[columnKey as keyof PlanDetails] || "N/A";
-                      })()}
-                    </TableCell>
+                <TableHeader columns={columns}>
+                  {(column) => (
+                    <TableColumn
+                      key={column.key}
+                      className="text-xs font-medium uppercase"
+                    >
+                      {column.label}
+                    </TableColumn>
                   )}
-                </TableRow>
-              )}
-            </TableBody>
-          </Table>
+                </TableHeader>
+                <TableBody items={filteredPlanDetails}>
+                  {(item) => (
+                    <TableRow key={item.id} className="hover:bg-gray-50">
+                      {(columnKey) => (
+                        <TableCell className="py-4">
+                          {(() => {
+                            if (columnKey === "metal_level") {
+                              return item.metal_level ? (
+                                <Chip
+                                  color={getMetalLevelColor(item.metal_level)}
+                                  size="sm"
+                                  variant="flat"
+                                >
+                                  {item.metal_level}
+                                </Chip>
+                              ) : (
+                                "N/A"
+                              );
+                            }
+                            if (columnKey === "plan_type") {
+                              return item.plan_type ? (
+                                <div className="flex items-center gap-2">
+                                  <span>{getPlanTypeIcon(item.plan_type)}</span>
+                                  <span className="text-sm">
+                                    {item.plan_type}
+                                  </span>
+                                </div>
+                              ) : (
+                                "N/A"
+                              );
+                            }
+                            if (columnKey === "issuer_name") {
+                              return (
+                                <div className="max-w-[200px]">
+                                  <Tooltip
+                                    content={item.issuer_name || "Unknown"}
+                                  >
+                                    <p className="truncate text-sm font-medium">
+                                      {item.issuer_name || "N/A"}
+                                    </p>
+                                  </Tooltip>
+                                </div>
+                              );
+                            }
+                            if (columnKey === "plan_marketing_name") {
+                              return (
+                                <div className="max-w-[250px]">
+                                  <Tooltip
+                                    content={
+                                      item.plan_marketing_name || "Unknown"
+                                    }
+                                  >
+                                    <p className="truncate text-sm">
+                                      {item.plan_marketing_name || "N/A"}
+                                    </p>
+                                  </Tooltip>
+                                </div>
+                              );
+                            }
+                            if (columnKey === "average_premium") {
+                              const premium = item.average_premium;
+
+                              return (
+                                <div className="text-sm">
+                                  <span className="font-medium">
+                                    {formatCurrency(premium)}
+                                  </span>
+                                  <br />
+                                  <span className="text-xs text-gray-500">
+                                    per month
+                                  </span>
+                                </div>
+                              );
+                            }
+                            if (columnKey === "net_cost") {
+                              const netCost = calculateNetCost(
+                                item.average_premium,
+                              );
+                              const isPositive = netCost && netCost > 0;
+
+                              return (
+                                <div className="text-sm">
+                                  <span
+                                    className={`font-medium ${
+                                      isPositive
+                                        ? "text-green-600"
+                                        : "text-red-600"
+                                    }`}
+                                  >
+                                    {formatCurrency(netCost)}
+                                  </span>
+                                  <br />
+                                  <span className="text-xs text-gray-500">
+                                    {isPositive
+                                      ? "budget remaining"
+                                      : "over budget"}
+                                  </span>
+                                </div>
+                              );
+                            }
+                            if (columnKey === "out_of_pocket") {
+                              const outOfPocket = calculateOutOfPocketPremium(
+                                item.average_premium,
+                              );
+
+                              return (
+                                <div className="text-sm">
+                                  <span className="font-medium">
+                                    {formatCurrency(outOfPocket)}
+                                  </span>
+                                  <br />
+                                  <span className="text-xs text-gray-500">
+                                    your cost
+                                  </span>
+                                </div>
+                              );
+                            }
+                            if (columnKey === "details") {
+                              const params = new URLSearchParams();
+
+                              if (submittedData?.demo.familyMakeup) {
+                                params.append(
+                                  "family_makeup",
+                                  submittedData.demo.familyMakeup,
+                                );
+                              }
+                              if (submittedData?.demo.averageMonthlySalary) {
+                                params.append(
+                                  "average_monthly_salary",
+                                  submittedData.demo.averageMonthlySalary,
+                                );
+                              }
+                              if (submittedData?.demo.ichraAmount) {
+                                params.append(
+                                  "ichra_amount",
+                                  submittedData.demo.ichraAmount,
+                                );
+                              }
+
+                              const queryString = params.toString();
+                              const href = queryString
+                                ? `/plans/${item.id}?${queryString}`
+                                : `/plans/${item.id}`;
+
+                              return (
+                                <Link href={href}>
+                                  <Button
+                                    color="primary"
+                                    size="sm"
+                                    variant="light"
+                                  >
+                                    View Details
+                                  </Button>
+                                </Link>
+                              );
+                            }
+
+                            return (
+                              item[columnKey as keyof PlanDetails] || "N/A"
+                            );
+                          })()}
+                        </TableCell>
+                      )}
+                    </TableRow>
+                  )}
+                </TableBody>
+              </Table>
+            </CardBody>
+          </Card>
+
+          {/* Quick Actions */}
+          <Card>
+            <CardBody>
+              <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+                <div>
+                  <h3 className="font-medium text-gray-800">Need Help?</h3>
+                  <p className="text-sm text-gray-600">
+                    Compare plans side-by-side or get expert assistance
+                  </p>
+                </div>
+                <div className="flex flex-wrap gap-2">
+                  <Tooltip content="Feature coming soon">
+                    <Button isDisabled color="secondary" variant="flat">
+                      📊 Compare Selected
+                    </Button>
+                  </Tooltip>
+                  <Button color="primary" variant="flat" onPress={onOpen}>
+                    📞 Get Help
+                  </Button>
+                </div>
+              </div>
+            </CardBody>
+          </Card>
         </div>
       )}
+
+      {/* Help Modal */}
+      <HelpModal isOpen={isOpen} onClose={onOpenChange} />
     </section>
+  );
+}
+
+export default function PlansPage() {
+  return (
+    <Suspense fallback={<div>Loading...</div>}>
+      <PlansPageContent />
+    </Suspense>
   );
 }

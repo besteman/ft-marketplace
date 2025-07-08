@@ -11,6 +11,9 @@ import {
 } from "@heroui/dropdown";
 import { Button } from "@heroui/button";
 import { Input } from "@heroui/input";
+import { Card, CardBody, CardHeader } from "@heroui/card";
+import { Divider } from "@heroui/divider";
+import { Chip } from "@heroui/chip";
 
 import StateFilters from "./stateFilters";
 import CountyFilters from "./countyFilters";
@@ -143,136 +146,162 @@ export default function CombinedFilters({
   return (
     <form className="space-y-6" onSubmit={handleSubmit}>
       {/* Demographics Section */}
-      <div className="space-y-4">
-        <div className="text-center">
-          <h3 className="text-lg font-semibold text-gray-800">
-            Demographics & Income Information
-          </h3>
-          <p className="mt-1 text-sm text-gray-600">
-            Please provide your family details and income information
-          </p>
-        </div>
+      <Card>
+        <CardHeader className="pb-2">
+          <div className="flex items-center gap-2">
+            <Chip color="primary" size="sm" variant="flat">
+              1
+            </Chip>
+            <div>
+              <h3 className="text-lg font-semibold text-gray-800">
+                👥 Demographics & Income
+              </h3>
+              <p className="text-sm text-gray-600">
+                Tell us about your family and financial situation
+              </p>
+            </div>
+          </div>
+        </CardHeader>
+        <Divider />
+        <CardBody className="space-y-4">
+          {/* Family Makeup Dropdown */}
+          <div className="flex flex-col gap-2">
+            <span className="text-sm font-medium text-gray-700">
+              👨‍👩‍👧‍👦 Family Makeup
+            </span>
+            <Dropdown>
+              <DropdownTrigger>
+                <Button className="justify-start" variant="bordered">
+                  {selectedFamilyMakeup?.label || "Select family makeup"}
+                </Button>
+              </DropdownTrigger>
+              <DropdownMenu
+                aria-label="Family Makeup Selection"
+                items={familyMakeupOptions}
+                onAction={(key) => setFamilyMakeup(key as string)}
+              >
+                {(item) => (
+                  <DropdownItem key={item.key}>{item.label}</DropdownItem>
+                )}
+              </DropdownMenu>
+            </Dropdown>
+          </div>
 
-        {/* Family Makeup Dropdown */}
-        <div className="flex flex-col gap-2">
-          <span className="text-sm font-medium text-gray-700">
-            Family Makeup
-          </span>
-          <Dropdown>
-            <DropdownTrigger>
-              <Button className="justify-start" variant="bordered">
-                {selectedFamilyMakeup?.label || "Select family makeup"}
-              </Button>
-            </DropdownTrigger>
-            <DropdownMenu
-              aria-label="Family Makeup Selection"
-              items={familyMakeupOptions}
-              onAction={(key) => setFamilyMakeup(key as string)}
-            >
-              {(item) => (
-                <DropdownItem key={item.key}>{item.label}</DropdownItem>
-              )}
-            </DropdownMenu>
-          </Dropdown>
-        </div>
+          {/* Average Monthly Salary */}
+          <div className="flex flex-col gap-2">
+            <span className="text-sm font-medium text-gray-700">
+              💰 Average Monthly Salary
+            </span>
+            <Input
+              placeholder="Enter your monthly salary"
+              startContent={
+                <div className="pointer-events-none flex items-center">
+                  <span className="text-default-400 text-small">$</span>
+                </div>
+              }
+              type="text"
+              value={formatCurrency(averageMonthlySalary)}
+              onValueChange={handleSalaryChange}
+            />
+          </div>
 
-        {/* Average Monthly Salary */}
-        <div className="flex flex-col gap-2">
-          <span className="text-sm font-medium text-gray-700">
-            Average Monthly Salary
-          </span>
-          <Input
-            placeholder="Enter your monthly salary"
-            startContent={
-              <div className="pointer-events-none flex items-center">
-                <span className="text-default-400 text-small">$</span>
-              </div>
-            }
-            type="text"
-            value={formatCurrency(averageMonthlySalary)}
-            onValueChange={handleSalaryChange}
-          />
-        </div>
-
-        {/* ICHRA Amount */}
-        <div className="flex flex-col gap-2">
-          <span className="text-sm font-medium text-gray-700">
-            ICHRA Amount
-          </span>
-          <Input
-            placeholder="Enter your ICHRA amount"
-            startContent={
-              <div className="pointer-events-none flex items-center">
-                <span className="text-default-400 text-small">$</span>
-              </div>
-            }
-            type="text"
-            value={formatCurrency(ichraAmount)}
-            onValueChange={handleIchraChange}
-          />
-        </div>
-      </div>
+          {/* ICHRA Amount */}
+          <div className="flex flex-col gap-2">
+            <span className="text-sm font-medium text-gray-700">
+              🏢 ICHRA Amount
+            </span>
+            <Input
+              placeholder="Enter your ICHRA amount"
+              startContent={
+                <div className="pointer-events-none flex items-center">
+                  <span className="text-default-400 text-small">$</span>
+                </div>
+              }
+              type="text"
+              value={formatCurrency(ichraAmount)}
+              onValueChange={handleIchraChange}
+            />
+          </div>
+        </CardBody>
+      </Card>
 
       {/* Geographic Section */}
-      <div className="space-y-4">
-        <div className="text-center">
-          <h3 className="text-lg font-semibold text-gray-800">
-            Geographic Information
-          </h3>
-          <p className="mt-1 text-sm text-gray-600">
-            Select your state and county to find available plans
-          </p>
-        </div>
-
-        <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
-          {/* State Filter */}
-          <div className="flex flex-col items-center space-y-2">
-            <span className="text-sm font-medium text-gray-700">State</span>
-            <div className="flex w-full justify-center">
-              <StateFilters
-                className="w-full"
-                placeholder="Select a state"
-                selectedState={geoFilters.state}
-                onStateChange={handleStateChange}
-              />
+      <Card>
+        <CardHeader className="pb-2">
+          <div className="flex items-center gap-2">
+            <Chip color="secondary" size="sm" variant="flat">
+              2
+            </Chip>
+            <div>
+              <h3 className="text-lg font-semibold text-gray-800">
+                📍 Location Information
+              </h3>
+              <p className="text-sm text-gray-600">
+                Select your state and county to find available plans
+              </p>
             </div>
           </div>
+        </CardHeader>
+        <Divider />
+        <CardBody>
+          <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
+            {/* State Filter */}
+            <div className="flex flex-col items-center space-y-2">
+              <span className="text-sm font-medium text-gray-700">
+                🗺️ State
+              </span>
+              <div className="flex w-full justify-center">
+                <StateFilters
+                  className="w-full"
+                  placeholder="Select a state"
+                  selectedState={geoFilters.state}
+                  onStateChange={handleStateChange}
+                />
+              </div>
+            </div>
 
-          {/* County Filter */}
-          <div className="flex flex-col items-center space-y-2">
-            <span className="text-sm font-medium text-gray-700">County</span>
-            <div className="flex w-full justify-center">
-              <CountyFilters
-                className="w-full"
-                placeholder="Select a county"
-                selectedCounty={geoFilters.county}
-                selectedState={geoFilters.state}
-                onCountyChange={handleCountyChange}
-              />
+            {/* County Filter */}
+            <div className="flex flex-col items-center space-y-2">
+              <span className="text-sm font-medium text-gray-700">
+                🏘️ County
+              </span>
+              <div className="flex w-full justify-center">
+                <CountyFilters
+                  className="w-full"
+                  placeholder="Select a county"
+                  selectedCounty={geoFilters.county}
+                  selectedState={geoFilters.state}
+                  onCountyChange={handleCountyChange}
+                />
+              </div>
             </div>
           </div>
-        </div>
-      </div>
+        </CardBody>
+      </Card>
 
       {/* Action Buttons */}
-      <div className="flex gap-3 pt-4">
-        <Button
-          className="flex-1"
-          color="primary"
-          isDisabled={!geoFilters.state || !geoFilters.county}
-          type="submit"
-        >
-          Apply Filters
-        </Button>
-        <Button
-          className="flex-1"
-          color="secondary"
-          variant="bordered"
-          onPress={handleReset}
-        >
-          Reset
-        </Button>
-      </div>
+      <Card>
+        <CardBody>
+          <div className="flex gap-3">
+            <Button
+              className="flex-1"
+              color="primary"
+              isDisabled={!geoFilters.state || !geoFilters.county}
+              type="submit"
+            >
+              🔍 Find My Plans
+            </Button>
+            <Button
+              className="flex-1"
+              color="secondary"
+              variant="bordered"
+              onPress={handleReset}
+            >
+              🔄 Reset
+            </Button>
+          </div>
+        </CardBody>
+      </Card>
     </form>
   );
 }

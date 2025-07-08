@@ -1,22 +1,59 @@
 import Link from "next/link";
 import { Button } from "@heroui/button";
+import { Card, CardBody } from "@heroui/card";
+import { Chip } from "@heroui/chip";
 
 export default function Home() {
   return (
-    <section className="flex flex-col items-center justify-center gap-4 py-8 md:py-10">
-      <div className="inline-block max-w-lg text-center justify-center">
-        <h1 className="text-4xl font-bold mb-6">
-          Welcome to the Health Plan Marketplace
-        </h1>
-        <p className="text-lg text-gray-600 mb-8">
-          Find and compare health insurance plans tailored to your needs.
-        </p>
-        <Link href="/plans">
-          <Button className="px-8 py-3" color="primary" size="lg">
-            Browse Plans
-          </Button>
-        </Link>
-      </div>
-    </section>
+    <div className="min-h-screen bg-gradient-to-br flex items-center justify-center px-6">
+      <Card className="max-w-4xl w-full bg-white/90 backdrop-blur-sm shadow-2xl">
+        <CardBody className="text-center p-12">
+          {/* Badge */}
+          <Chip
+            className="mb-6"
+            color="primary"
+            size="lg"
+            startContent={<span>🏛️</span>}
+            variant="flat"
+          >
+            Official Government Marketplace
+          </Chip>
+
+          {/* Main Headline */}
+          <h1 className="text-4xl md:text-6xl font-bold text-gray-900 mb-6 leading-tight">
+            Find Your Perfect{" "}
+            <span className="bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
+              Health Plan
+            </span>
+          </h1>
+
+          <p className="text-xl text-gray-600 mb-12 max-w-2xl mx-auto leading-relaxed">
+            Compare plans, understand costs, and find coverage that fits your
+            family&apos;s needs and budget.
+          </p>
+
+          {/* Main CTA */}
+          <div className="flex flex-col sm:flex-row gap-4 justify-center items-center">
+            <Link href="/plans">
+              <Button
+                className="px-8 py-4 text-lg font-semibold min-w-48"
+                color="primary"
+                size="lg"
+              >
+                Start Shopping
+              </Button>
+            </Link>
+            <Button
+              className="px-8 py-4 text-lg min-w-48"
+              color="secondary"
+              size="lg"
+              variant="bordered"
+            >
+              Learn More
+            </Button>
+          </div>
+        </CardBody>
+      </Card>
+    </div>
   );
 }

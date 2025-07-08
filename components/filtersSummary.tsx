@@ -4,14 +4,9 @@ import type { CombinedFiltersData } from "@/types";
 
 import React from "react";
 import { Button } from "@heroui/button";
-import {
-  Table,
-  TableHeader,
-  TableColumn,
-  TableBody,
-  TableRow,
-  TableCell,
-} from "@heroui/table";
+import { Card, CardBody, CardHeader } from "@heroui/card";
+import { Chip } from "@heroui/chip";
+import { Divider } from "@heroui/divider";
 
 interface FiltersSummaryProps {
   data: CombinedFiltersData;
@@ -45,85 +40,82 @@ export default function FiltersSummary({ data, onReset }: FiltersSummaryProps) {
     }).format(number);
   };
 
-  const summaryData = [
-    {
-      key: "state",
-      category: "Geographic",
-      field: "State",
-      value: data.geo.state || "Not specified",
-    },
-    {
-      key: "county",
-      category: "Geographic",
-      field: "County",
-      value: data.geo.county || "Not specified",
-    },
-    {
-      key: "familyMakeup",
-      category: "Demographics",
-      field: "Family Makeup",
-      value: data.demo.familyMakeup
-        ? familyMakeupLabels[data.demo.familyMakeup] || data.demo.familyMakeup
-        : "Not specified",
-    },
-    {
-      key: "salary",
-      category: "Income",
-      field: "Average Monthly Salary",
-      value: formatCurrency(data.demo.averageMonthlySalary),
-    },
-    {
-      key: "ichra",
-      category: "Income",
-      field: "ICHRA Amount",
-      value: formatCurrency(data.demo.ichraAmount),
-    },
-  ];
-
-  const columns = [
-    { key: "category", label: "Category" },
-    { key: "field", label: "Field" },
-    { key: "value", label: "Value" },
-  ];
-
   return (
     <div className="space-y-6">
-      <Table aria-label="Selected filters summary">
-        <TableHeader columns={columns}>
-          {(column) => (
-            <TableColumn key={column.key}>{column.label}</TableColumn>
-          )}
-        </TableHeader>
-        <TableBody items={summaryData}>
-          {(item) => (
-            <TableRow key={item.key}>
-              {(columnKey) => (
-                <TableCell>
-                  {columnKey === "category" && (
-                    <span className="rounded-full bg-blue-100 px-2 py-1 text-xs font-medium text-blue-800">
-                      {item.category}
-                    </span>
-                  )}
-                  {columnKey === "field" && (
-                    <span className="font-medium text-gray-700">
-                      {item.field}
-                    </span>
-                  )}
-                  {columnKey === "value" && (
-                    <span className="text-gray-900">{item.value}</span>
-                  )}
-                </TableCell>
-              )}
-            </TableRow>
-          )}
-        </TableBody>
-      </Table>
+      <Card>
+        <CardHeader className="pb-2">
+          <div className="flex items-center gap-2">
+            <span className="text-lg">✅</span>
+            <div>
+              <h3 className="text-lg font-semibold text-gray-800">
+                Your Selected Filters
+              </h3>
+              <p className="text-sm text-gray-600">Review your choices below</p>
+            </div>
+          </div>
+        </CardHeader>
+        <Divider />
+        <CardBody className="space-y-4">
+          {/* Geographic Information */}
+          <div>
+            <h4 className="mb-2 text-sm font-medium text-gray-700">
+              📍 Location
+            </h4>
+            <div className="flex flex-wrap gap-2">
+              <Chip color="primary" variant="flat">
+                🗺️ {data.geo.state || "Not specified"}
+              </Chip>
+              <Chip color="primary" variant="flat">
+                🏘️ {data.geo.county || "Not specified"}
+              </Chip>
+            </div>
+          </div>
 
-      <div className="flex justify-center pt-1">
-        <Button color="secondary" variant="bordered" onPress={onReset}>
-          Change Filters
-        </Button>
-      </div>
+          {/* Demographics Information */}
+          <div>
+            <h4 className="mb-2 text-sm font-medium text-gray-700">
+              👥 Demographics
+            </h4>
+            <div className="flex flex-wrap gap-2">
+              <Chip color="secondary" variant="flat">
+                👨‍👩‍👧‍👦{" "}
+                {data.demo.familyMakeup
+                  ? familyMakeupLabels[data.demo.familyMakeup] ||
+                    data.demo.familyMakeup
+                  : "Not specified"}
+              </Chip>
+            </div>
+          </div>
+
+          {/* Income Information */}
+          <div>
+            <h4 className="mb-2 text-sm font-medium text-gray-700">
+              💰 Financial Details
+            </h4>
+            <div className="flex flex-wrap gap-2">
+              <Chip color="success" variant="flat">
+                💰 Salary: {formatCurrency(data.demo.averageMonthlySalary)}
+              </Chip>
+              <Chip color="success" variant="flat">
+                🏢 ICHRA: {formatCurrency(data.demo.ichraAmount)}
+              </Chip>
+            </div>
+          </div>
+        </CardBody>
+      </Card>
+
+      <Card>
+        <CardBody>
+          <div className="flex flex-col items-center gap-3">
+            <p className="text-center text-sm text-gray-600">
+              Need to make changes to your selection?
+            </p>
+            <Button color="secondary" variant="bordered" onPress={onReset}>
+              🔄 Change Filters
+            </Button>
+          </div>
+        </CardBody>
+      </Card>
     </div>
   );
 }
