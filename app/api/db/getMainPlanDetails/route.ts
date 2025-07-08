@@ -31,6 +31,7 @@ export async function GET(
 
     // Define base columns
     const baseColumns = [
+      "id",
       "metal_level",
       "issuer_name",
       "plan_id_standard_component",
@@ -119,6 +120,7 @@ export async function GET(
     const plans = data
       .filter(
         (plan: any) =>
+          plan.id &&
           plan.metal_level &&
           plan.issuer_name &&
           plan.plan_id_standard_component &&
@@ -127,6 +129,7 @@ export async function GET(
       )
       .map((plan: any) => {
         const basePlan = {
+          id: plan.id,
           metal_level: plan.metal_level,
           issuer_name: plan.issuer_name,
           plan_id_standard_component: plan.plan_id_standard_component,
