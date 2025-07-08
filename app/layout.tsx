@@ -1,6 +1,7 @@
 import "@/styles/globals.css";
 import { Metadata, Viewport } from "next";
 import clsx from "clsx";
+import { Analytics } from "@vercel/analytics/next";
 
 import { Providers } from "./providers";
 
@@ -49,6 +50,7 @@ export default function RootLayout({
           <div className="relative flex flex-col h-screen">
             <main className="container mx-auto max-w-7xl px-6 flex-grow">
               {children}
+              <Analytics />
             </main>
             <footer className="w-full flex items-center justify-center py-3">
               <p className="text-primary">besteman</p>
