@@ -309,8 +309,8 @@ function PlansPageContent() {
       {/* Filter Section */}
       <Card className="w-full max-w-4xl">
         <CardHeader className="pb-2">
-          <div className="flex items-center justify-between">
-            <div>
+          <div className="flex items-start justify-between">
+            <div className="flex-1">
               <h1 className="text-2xl font-bold text-gray-800">
                 Find Your Health Plan
               </h1>
@@ -320,7 +320,7 @@ function PlansPageContent() {
                   : "Review your plan options and compare details"}
               </p>
             </div>
-            <Tooltip content="Need help getting started?">
+            <div className="ml-4">
               <Button
                 color="secondary"
                 size="sm"
@@ -329,7 +329,7 @@ function PlansPageContent() {
               >
                 ❓ Help
               </Button>
-            </Tooltip>
+            </div>
           </div>
         </CardHeader>
         <CardBody>
