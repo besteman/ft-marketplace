@@ -27,91 +27,10 @@ import Breadcrumb from "@/components/breadcrumb";
 
 interface PlanDetailsPageProps {}
 
-// Mock plan data for demonstration - in a real app, this would come from an API
-const mockPlanData: DetailedPlanDetails = {
-  id: "12345-AB-001",
-  state_code: "TX",
-  fips_county_code: 48201,
-  county_name: "Harris County",
-  metal_level: "Gold",
-  issuer_name: "Blue Cross Blue Shield of Texas",
-  hios_issuer_id: 10118,
-  plan_id_standard_component: "12345AB0010001",
-  plan_marketing_name: "Blue Advantage Gold Essential Plan",
-  standardized_plan_option: "Standardized",
-  plan_type: "HMO",
-  rating_area: "Rating Area 1",
-  child_only_offering: "No",
-  source: "SERFF",
-  customer_service_phone_number_local: "(713) 555-0123",
-  customer_service_phone_number_toll_free: "1-800-555-0123",
-  customer_service_phone_number_tty: "711",
-  network_url: "https://www.bcbstx.com/provider-finder",
-  plan_brochure_url: "https://www.bcbstx.com/plan-brochure",
-  summary_of_benefits_url: "https://www.bcbstx.com/summary-benefits",
-  drug_formulary_url: "https://www.bcbstx.com/formulary",
-  adult_dental: "Limited",
-  child_dental: "Included",
-  ehb_percent_of_total_premium: "95.2",
-  premium_child_age_0_14: 285,
-  premium_child_age_18: 295,
-  premium_adult_individual_age_21: 425,
-  premium_adult_individual_age_27: 435,
-  premium_adult_individual_age_30: 445,
-  premium_adult_individual_age_40: 485,
-  premium_adult_individual_age_50: 595,
-  premium_adult_individual_age_60: 795,
-  premium_couple_21: 850,
-  premium_couple_30: 890,
-  premium_couple_40: 970,
-  premium_couple_50: 1190,
-  premium_couple_60: 1590,
-  couple_plus_1_child_age_21: 1135,
-  couple_plus_1_child_age_30: 1175,
-  couple_plus_1_child_age_40: 1255,
-  couple_plus_1_child_age_50: 1475,
-  couple_plus_2_children_age_21: 1420,
-  couple_plus_2_children_age_30: 1460,
-  couple_plus_2_children_age_40: 1540,
-  couple_plus_2_children_age_50: 1760,
-  couple_plus_3_or_more_children_age_21: 1705,
-  couple_plus_3_or_more_children_age_30: 1745,
-  couple_plus_3_or_more_children_age_40: 1825,
-  couple_plus_3_or_more_children_age_50: 2045,
-  individual_plus_1_child_age_21: 710,
-  individual_plus_1_child_age_30: 730,
-  individual_plus_1_child_age_40: 770,
-  individual_plus_1_child_age_50: 880,
-  individual_plus_2_children_age_21: 995,
-  individual_plus_2_children_age_30: 1015,
-  individual_plus_2_children_age_40: 1055,
-  individual_plus_2_children_age_50: 1165,
-  individual_plus_3_or_more_children_age_21: 1280,
-  individual_plus_3_or_more_children_age_30: 1300,
-  individual_plus_3_or_more_children_age_40: 1340,
-  individual_plus_3_or_more_children_age_50: 1450,
-  medical_deductible_individual_standard: 1500,
-  drug_deductible_individual_standard: "500",
-  medical_deductible_family_standard: 3000,
-  drug_deductible_family_standard: "1000",
-  medical_deductible_family_per_person_standard: "1500",
-  drug_deductible_family_per_person_standard: "500",
-  medical_maximum_out_of_pocket_individual_standard: 7500,
-  drug_maximum_out_of_pocket_individual_standard: "3000",
-  medical_maximum_out_of_pocket_family_standard: 15000,
-  drug_maximum_out_of_pocket_family_standard: "6000",
-  medical_maximum_out_of_pocket_family_per_person_standard: 7500,
-  drug_maximum_out_of_pocket_family_per_person_standard: "3000",
-  primary_care_physician_standard: "$25 copay",
-  specialist_standard: "$50 copay",
-  emergency_room_standard: "$350 copay",
-  inpatient_facility_standard: "$1,000 copay per admission",
-  inpatient_physician_standard: "No charge",
-  generic_drugs_standard: "$10 copay",
-  preferred_brand_drugs_standard: "$40 copay",
-  non_preferred_brand_drugs_standard: "$70 copay",
-  specialty_drugs_standard: "30% coinsurance",
-};
+// Interface for the API response
+interface GetPlanDetailsResponse {
+  plan: DetailedPlanDetails | null;
+}
 
 export default function PlanDetailsPage({}: PlanDetailsPageProps) {
   const params = useParams();
@@ -128,19 +47,29 @@ export default function PlanDetailsPage({}: PlanDetailsPageProps) {
   const ichraAmount = parseFloat(searchParams.get("ichra_amount") || "0");
 
   useEffect(() => {
-    // Simulate API call
+    // Fetch plan data from the API
     const fetchPlanData = async () => {
       try {
         setLoading(true);
-        // In a real app, this would be an actual API call
-        // const response = await fetch(`/api/plans/${planId}`);
-        // const data = await response.json();
+        // Fetch data from the API
+        const response = await fetch(`/api/db/getPlanDetails/${planId}`);
 
-        // Simulate loading delay
-        await new Promise((resolve) => setTimeout(resolve, 1500));
-        setPlanData(mockPlanData);
-      } catch {
-        setError("Failed to load plan details");
+        if (!response.ok) {
+          throw new Error(`API error: ${response.status}`);
+        }
+
+        const data = (await response.json()) as GetPlanDetailsResponse;
+
+        if (!data.plan) {
+          throw new Error("Plan not found");
+        }
+
+        setPlanData(data.plan);
+      } catch (err) {
+        // Log error silently
+        setError(
+          err instanceof Error ? err.message : "Failed to load plan details",
+        );
       } finally {
         setLoading(false);
       }
@@ -299,9 +228,18 @@ export default function PlanDetailsPage({}: PlanDetailsPageProps) {
               Error Loading Plan
             </h1>
             <p className="text-gray-600 mb-6">{error || "Plan not found"}</p>
-            <Button color="primary" onPress={() => router.push("/")}>
-              Return to Home
-            </Button>
+            <div className="flex flex-col sm:flex-row gap-4 justify-center">
+              <Button color="primary" onPress={() => router.push("/plans")}>
+                Return to Plan Listings
+              </Button>
+              <Button
+                color="secondary"
+                variant="bordered"
+                onPress={() => window.location.reload()}
+              >
+                Try Again
+              </Button>
+            </div>
           </CardBody>
         </Card>
       </div>
@@ -466,23 +404,23 @@ export default function PlanDetailsPage({}: PlanDetailsPageProps) {
                           <span>🏥</span> Care Access
                         </h4>
                         <div className="bg-white p-4 rounded-lg shadow-sm space-y-3">
-                          <div className="flex items-center justify-between">
+                          <div className="flex items-start justify-between gap-4">
                             <span className="text-sm">Primary Care</span>
-                            <Chip color="success" size="sm" variant="flat">
+                            <span className="text-sm font-medium text-right text-black-600">
                               {planData.primary_care_physician_standard}
-                            </Chip>
+                            </span>
                           </div>
                           <div className="flex items-center justify-between">
                             <span className="text-sm">Specialist</span>
-                            <Chip color="warning" size="sm" variant="flat">
+                            <span className="text-sm font-medium text-right text-black-600">
                               {planData.specialist_standard}
-                            </Chip>
+                            </span>
                           </div>
-                          <div className="flex items-center justify-between">
+                          <div className="flex items-start justify-between gap-4">
                             <span className="text-sm">Emergency</span>
-                            <Chip color="danger" size="sm" variant="flat">
+                            <span className="text-sm font-medium text-right text-black-600">
                               {planData.emergency_room_standard}
-                            </Chip>
+                            </span>
                           </div>
                         </div>
                       </div>
@@ -1782,9 +1720,9 @@ export default function PlanDetailsPage({}: PlanDetailsPageProps) {
                                 Primary Care
                               </span>
                             </div>
-                            <Chip color="success" size="sm" variant="flat">
+                            <span className="text-sm font-medium text-right text-green-600">
                               {planData.primary_care_physician_standard}
-                            </Chip>
+                            </span>
                           </div>
                           <div className="flex items-center justify-between p-3 bg-purple-50 rounded-lg">
                             <div className="flex items-center gap-2">
@@ -1804,9 +1742,9 @@ export default function PlanDetailsPage({}: PlanDetailsPageProps) {
                                 Emergency Care
                               </span>
                             </div>
-                            <Chip color="danger" size="sm" variant="flat">
+                            <span className="text-sm font-medium text-right text-red-600">
                               {planData.emergency_room_standard}
-                            </Chip>
+                            </span>
                           </div>
                           <div className="flex items-center justify-between p-3 bg-orange-50 rounded-lg">
                             <div className="flex items-center gap-2">
@@ -1931,14 +1869,14 @@ export default function PlanDetailsPage({}: PlanDetailsPageProps) {
                   <CardBody>
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                       <div className="space-y-3">
-                        <div className="flex items-center justify-between p-3 bg-blue-50 rounded-lg">
+                        <div className="flex items-start justify-between p-3 bg-blue-50 rounded-lg gap-4">
                           <div className="flex items-center gap-2">
                             <span className="text-blue-600">👨‍⚕️</span>
                             <span>Primary Care Physician</span>
                           </div>
-                          <Chip color="primary" size="sm" variant="flat">
+                          <span className="text-sm font-medium text-right text-blue-600">
                             {planData.primary_care_physician_standard}
-                          </Chip>
+                          </span>
                         </div>
                         <div className="flex items-center justify-between p-3 bg-purple-50 rounded-lg">
                           <div className="flex items-center gap-2">
@@ -1949,14 +1887,14 @@ export default function PlanDetailsPage({}: PlanDetailsPageProps) {
                             {planData.specialist_standard}
                           </Chip>
                         </div>
-                        <div className="flex items-center justify-between p-3 bg-red-50 rounded-lg">
+                        <div className="flex items-start justify-between p-3 bg-red-50 rounded-lg gap-4">
                           <div className="flex items-center gap-2">
                             <span className="text-red-600">🚨</span>
                             <span>Emergency Room</span>
                           </div>
-                          <Chip color="danger" size="sm" variant="flat">
+                          <span className="text-sm font-medium text-right text-red-600">
                             {planData.emergency_room_standard}
-                          </Chip>
+                          </span>
                         </div>
                       </div>
                       <div className="space-y-3">
