@@ -3,10 +3,14 @@
   "version": "0.0.1",
   "private": true,
   "scripts": {
-    "dev": "next dev --turbopack",
-    "build": "next build",
-    "start": "next start",
-    "lint": "eslint --fix"
+    "dev": "npm run check-node && next dev --turbopack",
+    "build": "npm run check-node && next build",
+    "start": "npm run check-node && next start",
+    "lint": "eslint --fix",
+    "check-node": "tsx scripts/checkNodeVersion.ts"
+  },
+  "engines": {
+    "node": ">=24.0.0"
   },
   "dependencies": {
     "@heroui/accordion": "^2.2.19",
@@ -68,6 +72,7 @@
     "supabase": "^2.30.4",
     "tailwind-variants": "0.3.0",
     "tailwindcss": "3.4.16",
+    "tsx": "^4.20.3",
     "typescript": "5.6.3"
   }
 }

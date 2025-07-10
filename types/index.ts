@@ -132,6 +132,26 @@ export interface GetMainPlanDetailsResponse {
   family_makeup?: string | null;
 }
 
+// Re-export Node.js version types
+export type {
+  NodeVersionInfo,
+  NodeVersionError,
+  NodeVersionErrorResponse,
+  NodeVersionResponse,
+  NodeVersionCheckResult,
+  NodeVersionDisplayProps,
+  NodeVersionTooltipData,
+  NodeVersionStatus,
+} from "./nodeVersion";
+
+export {
+  NODE_VERSION_CONSTANTS,
+  isNodeVersionInfo,
+  isNodeVersionError,
+  getNodeVersionStatus,
+  formatNodeVersionMessage,
+} from "./nodeVersion";
+
 export interface ApiErrorResponse {
   error: string;
 }
