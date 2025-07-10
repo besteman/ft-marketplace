@@ -85,7 +85,7 @@ export function getNodeVersionStatus(majorVersion: number): NodeVersionStatus {
 
 export function formatNodeVersionMessage(versionInfo: NodeVersionInfo): string {
   const status = getNodeVersionStatus(versionInfo.majorVersion);
-  
+
   switch (status) {
     case "compatible":
       return `✅ Node.js ${versionInfo.version} is compatible`;
