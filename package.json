@@ -3,14 +3,13 @@
   "version": "0.0.1",
   "private": true,
   "scripts": {
-    "dev": "npm run check-node && next dev --turbopack",
-    "build": "npm run check-node && next build",
-    "start": "npm run check-node && next start",
-    "lint": "eslint --fix",
-    "check-node": "tsx scripts/checkNodeVersion.ts"
+    "dev": "next dev --turbopack",
+    "build": "next build",
+    "start": "next start",
+    "lint": "eslint --fix"
   },
   "engines": {
-    "node": ">=24.0.0"
+    "node": ">=22.0.0"
   },
   "dependencies": {
     "@heroui/accordion": "^2.2.19",
